@@ -303,7 +303,7 @@ Finally, to test if the cluster is working we are going to create a deplyoment t
 - name: Test if cluster is working
   hosts: masters
   tasks:
-    - name: Deploy 5 nginx pods on worker node and open port 30003 on worker
+    - name: Deploy 5 nginx pods on worker node and open port 31113 on worker
       become: yes
       copy:
         src: deploy-nginx.yaml
@@ -317,7 +317,7 @@ Finally, to test if the cluster is working we are going to create a deplyoment t
       shell: kubectl --kubeconfig /home/ubuntu/.kube/config create -f /home/ubuntu/deploy-nginx.yaml
     - name: Wait for pods to start
       pause:
-        seconds: 30
+        minutes: 1
 ```
  
  If it all goes as it's should be, you should see output like this:
