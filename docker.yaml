@@ -1,0 +1,78 @@
+---
+- name: Install docker
+  hosts: all
+  become: yes
+  any_errors_fatal: true # If one task on eny server fails, ansible will stop execution on all servers
+  tasks:
+    - name: Update and upgrade packages
+      meta: flush_handlers
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+         - apt-transport-https
+         - ca-certificates
+         - curl
+         - software-properties-common
+         - gnupg2
+    - name: Import repository key
+      apt_key: 
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present 
+    - name: Get release
+      shell: "lsb_release -cs"
+      register: release
+    - name: Add APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+        update_cache: yes
+        state: present
+      when: '"Mint" in ansible_distribution'
+    - name: Add APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian buster stable
+        update_cache: yes
+        state: present
+      when: '"Kali" in ansible_distribution'
+    - name: Add APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu "{{ release.stdout  }}" stable
+        update_cache: yes
+        state: present
+      when: '"Ubuntu" in ansible_distribution'
+    - name: Install docker
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+      notify:
+        - Update
+    - name: Start docker
+      systemd:
+        name: docker
+        state: restarted
+        enabled: yes
+    - name: Add user to docker group
+      user:
+        user: "ubuntu"
+        groups: docker
+        append: yes
+    # We need to reset connection for changes to be applied
+    - name: Reset ssh 
+      meta: reset_connection
+    - name: Validate installation
+      shell: "docker info"
+      register: "info"
+    - name: Print docker info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+  handlers:
+    - name: Update
+      apt:
+        update_cache: yes
+          #upgrade: dist
+          #force_apt_get: yes

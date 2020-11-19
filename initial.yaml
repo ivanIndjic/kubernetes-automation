@@ -1,0 +1,21 @@
+---
+- name: Add ubuntu user
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create user
+      user:
+        name: ubuntu
+        shell: /bin/bash
+        state: present
+        create_home: yes
+    - name: Allow ubuntu to perform sudo without passwd
+      lineinfile:
+        path: /etc/sudoers
+        line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
+          # validate: 'visudo -cf %s'
+          #    - name: Set keys
+          # authorized_key:
+          #user: ubuntu
+          #key: "{{ lookup('file', '/home/ivan/notes/vagrant/ubuntu.pub') }}"
+          

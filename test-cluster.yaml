@@ -1,0 +1,20 @@
+
+---
+- name: Test if cluster is working
+  hosts: masters
+  tasks:
+    - name: Deploy 5 nginx pods on worker node and open port 30003 on worker
+      become: yes
+      copy:
+        src: deploy-nginx.yaml
+        dest: /home/ubuntu/deploy-nginx.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+    - name: Deploy manifest
+      become: yes
+      become_user: "ubuntu"
+      shell: kubectl --kubeconfig /home/ubuntu/.kube/config create -f /home/ubuntu/deploy-nginx.yaml
+    - name: Wait for pods to start
+      pause:
+        minutes: 1

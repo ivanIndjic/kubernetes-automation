@@ -1,0 +1,21 @@
+---
+- name: Playbook for joining worker nodes to the cluster
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Create join token
+      shell: kubeadm token create --print-join-command
+      register: output
+    - name: Set fact
+      set_fact:
+        join_command: "{{ output.stdout_lines[0] }}"
+
+- name: Join workers
+  become: yes
+  hosts: workers
+  tasks:
+    - name: Join cluster
+      shell: "{{ hostvars['master'].join_command }} --node-name worker >> node_joined.txt"
+      args:
+        chdir: "$HOME"
+        creates: node_joined.txt

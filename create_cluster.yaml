@@ -1,0 +1,52 @@
+--- 
+- name: Initialize cluster
+  become: yes
+  hosts: masters
+  tasks:
+    - name: Make sure the swap is off
+      shell: 'swapoff -a'
+    - name: Init cluster
+      shell: kubeadm init --apiserver-advertise-address "{{ ansible_enp0s8.ipv4.address }}" --pod-network-cidr=10.244.0.0/16 >> cluster_init.txt
+      args:
+        chdir: $HOME
+        creates: cluster_init.txt
+    - name: Create .kube dir in home directory
+      become_user: ubuntu
+      file:
+        path: "$HOME/.kube"
+        state: directory
+        owner: "ubuntu"
+        group: "ubuntu"
+        mode: 0755
+    - name: Create config
+      become_user: "ubuntu"
+      file:
+        path: "$HOME/.kube/config"
+        state: touch
+        mode: 0755
+        owner: "ubuntu"
+        group: "ubuntu"
+    - name: Copy admin.conf to .kube dir
+      copy:
+        dest: '/home/ubuntu/.kube/config'
+        src: '/etc/kubernetes/admin.conf'
+        owner: ubuntu
+        remote_src: yes
+    - name: Get network pod
+      become_user: "ubuntu"
+      get_url:
+        url: https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+        dest: '$HOME/pod_network.yaml'
+    - name: Change api version
+      become_user: "ubuntu"
+      replace:
+        path: $HOME/pod_network.yaml
+        regexp: "apiVersion: extensions/v1beta1"
+        replace: "apiVersion: apps/v1"
+        
+    - name: Install flannel pod network
+      become_user: ubuntu
+      shell: kubectl create -f $HOME/pod_network.yaml
+      args:
+        chdir: '$HOME'
+        creates: pod_network_setup.txt

@@ -1,0 +1,39 @@
+---
+- name: Install tools
+  hosts: all
+  become: yes
+  tasks:
+    - name: Add k8s apt key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    - name: Add k8s repo
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: 'kubernetes'
+        update_cache: true
+    - name: Install dependencies
+      apt:
+        name: kubernetes-cni
+        state: present
+        update_cache: true
+    - name: Install kubelet on all boxes
+      apt:
+        name: kubelet
+        state: present
+        update_cache: true
+    - name: Install kubeadm
+      apt:
+        name: kubeadm
+        state: present
+        update_cache: true
+- name: Install kubectl only on master
+  hosts: masters
+  become: yes
+  tasks:
+    - name: install kubectl
+      apt:
+        name: kubectl=1.14.0-00
+        state: present
+        force: yes
