@@ -74,10 +74,6 @@ Now, we'll explain structure of "**initial.yaml**" playbook.
       lineinfile:
         path: /etc/sudoers
         line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
-    - name: Set keys
-      authorized_key:
-        user: ubuntu
-        key: "{{ lookup('file', '/home/ivan/notes/vagrant/ubuntu.pub') }}"
 ```
 ### Playbook 2.
 
