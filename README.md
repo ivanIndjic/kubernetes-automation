@@ -320,7 +320,7 @@ Finally, to test if the cluster is working we are going to create a deplyoment t
         minutes: 1
 ```
  
- If it all goes as it's should be, you should see output like this:
+ If we done everything correctly, you should see output like this:
 ```
 <!DOCTYPE html>
 <html>
